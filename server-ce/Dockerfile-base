@@ -76,6 +76,8 @@ RUN mkdir /install-tl-unx \
       synctex \
       etoolbox \
       xetex \
+&&  tlmgr install --repository ${TEXLIVE_MIRROR} \
+      scheme-full  \
 &&  tlmgr path add \
 &&  rm -rf /install-tl-unx
 
