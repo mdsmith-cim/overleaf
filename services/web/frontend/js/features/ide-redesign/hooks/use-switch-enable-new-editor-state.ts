@@ -6,12 +6,15 @@ export const useSwitchEnableNewEditorState = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { setUserSettings } = useUserSettingsContext()
+
   const setEditorRedesignStatus = useCallback(
     (status: boolean): Promise<void> => {
       setLoading(true)
       setError('')
       return new Promise((resolve, reject) => {
-        postJSON('/user/settings', { body: { enableNewEditor: status } })
+        postJSON('/user/settings', {
+          body: { enableNewEditor: status },
+        })
           .then(() => {
             setUserSettings(current => ({
               ...current,

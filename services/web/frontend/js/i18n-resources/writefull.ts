@@ -6,6 +6,7 @@ const en = {
     disable: 'Disable',
     replace: 'Replace',
     insert: 'Insert',
+    add: 'Add',
     generate: 'Generate',
     generating: 'Generating',
     regenerate: 'Regenerate',
@@ -16,6 +17,7 @@ const en = {
     'do-not-know': 'Don’t know',
     equation: 'equation',
     table: 'table',
+    figure: 'figure',
     or: 'or',
     close: 'Close',
     submit: 'Submit',
@@ -67,6 +69,8 @@ const en = {
     'translate.request-new-language.title': 'Request a Language',
     'translate.request-new-language.body':
       "Sorry, we don't currently offer any other languages. Tell us what language you wanted to use and we will review whether we can add it in the future.",
+    'translate.request-new-language.body.already-provided':
+      'Thank you for your request. We already provide __language__. Please try using Translate again.',
     'translate.request-new-language.submit': 'Request',
     'translate.request-new-language.thanks.title':
       'Thank you for your language request',
@@ -139,6 +143,7 @@ const en = {
     'ai-context-menu.join': 'Join',
     'ai-context-menu.widgets': 'Widgets',
     'ai-context-menu.abstract-generator': 'Abstract Generator',
+    'ai-context-menu.keywords-generator': 'Keywords Generator',
     'ai-context-menu.context-options': 'Context Options',
     'ai-context-menu.select-text-tooltip':
       'Select text to access these options',
@@ -160,6 +165,8 @@ const en = {
     'ai-context-menu.advanced-options.paraphrase.level': 'Level',
     'ai-context-menu.advanced-options.paraphrase.style': 'Style',
     'ai-context-menu.advanced-options.paraphrase.length': 'Length',
+    'ai-context-menu.advanced-options.prompt': 'Prompt',
+    'ai-context-menu.advanced-options.advanced': 'Advanced',
     'ai-context-menu.translate': 'Translate',
     'blocked-language-suggestions-modal.title': 'Blocked Language Suggestions',
     'blocked-language-suggestions-modal.description':
@@ -190,7 +197,16 @@ const en = {
     'errors.error-hit-limit-freemium.body':
       'You’ve hit your Writefull quota. Upgrade now for unlimited language suggestions and LaTeX support, and early access to upcoming features like TikZ generation.',
     'toolbar.abstract-generator.name': 'Abstract generator',
+    'toolbar.abstract-generator.disabled_non_english':
+      'You need to be writing in English to generate an abstract',
+    'toolbar.keywords-generator.name': 'Keywords generator',
+    'toolbar.keywords-generator.disabled':
+      'You need to have an abstract to generate keywords',
     'toolbar.title-generator.name': 'Title generator',
+    'toolbar.title-generator.disabled_abstract_required':
+      'You need to have an abstract to generate a title',
+    'toolbar.title-generator.disabled_non_english':
+      'You need to be writing in English to generate a title',
     'toolbar.create-table.name': 'Create tables',
     'toolbar.create-table.tooltip': 'Generate tables instantly',
     'toolbar.create-equation.name': 'Create equation',
@@ -228,7 +244,7 @@ const en = {
     'create-modal.accept-tos_equation': 'Before you generate an equation',
     'create-modal.image-picker-placeholder':
       'Drop an image of the __name__ here',
-    'create-modal.enter-prompt': 'Enter your own prompt/Paste an image here:',
+    'create-modal.enter-prompt': 'Enter your prompt to generate the __name__:',
     'create-modal.enter-prompt-or-paste-image':
       'Enter your prompt or paste an image with the __name__:',
     'create-modal.drop-image': 'Or, drop an image of the __name__ here:',
@@ -315,6 +331,19 @@ const en = {
     'sign-in.extension-user-blocked.p5':
       'If you need help or guidance then more information is available ',
     'sign-in.extension-user-blocked.l2': 'here.',
+    'translation-notification.title_1': 'New, nieuw, nuevo!',
+    'translation-notification.title_2': 'Translate your text instantly',
+    'translation-notification.body_1':
+      'Translate your project without leaving Overleaf!',
+    'translation-notification.body_2_floating-button-enabled':
+      'Simply highlight your text, click',
+    'translation-notification.body_3_floating-button-enabled':
+      'and select "Translate" to pick from 30 languages.',
+    'translation-notification.body_2_toolbar-visible':
+      'Simply highlight your text and select the "Translate"',
+    'translation-notification.body_3_toolbar-visible':
+      'icon in your toolbar to pick from 30 languages.',
+    'translation-notification.ok': 'OK',
     'welcome.continue': 'Continue',
     'welcome.not-for-you': 'Not for you? Click',
     'welcome.here': 'here',
@@ -369,6 +398,63 @@ const en = {
     'welcome.reset-password': 'Reset password',
     'welcome.enable-writefull':
       'Enable Writefull for language and LaTeX support',
+    'citations-reviewer.chat.title': 'Citation reviewer',
+    'citations-reviewer.chat.description':
+      '<b>Identified __count__ passages</b><br/>Here are statements in your article that may benefit from a citation.',
+    'citations-reviewer.chat.document-updated':
+      'Your document has been updated. Refresh citations to get new suggestions.',
+    'citations-reviewer.chat.fetching-citations':
+      'Reviewing your document to see if any passage of text might need a citation',
+    'citations-reviewer.chat.fetching-publications': 'Fetching publications...',
+    'citations-reviewer.chat.no-citations.title': 'Well done!',
+    'citations-reviewer.chat.no-citations.description':
+      "We didn't identify any passages that need additional citation.",
+    'citations-reviewer.chat.no-citations.run-again': 'Run again',
+    'citations-reviewer.chat.no-citations.done': 'Done',
+    'citations-reviewer.chat.publications.title': 'Suggested papers',
+    'citations-reviewer.chat.publications.description':
+      'The following papers may support the claim you’ve made. Always check papers yourself to ensure relevance.',
+    'citations-reviewer.chat.publications.subtitle': 'Select papers to cite:',
+    'citations-reviewer.chat.publications.no-results': 'No sources found',
+    'citations-reviewer.chat.publications.alternatively': 'Alternatively,',
+    'citations-reviewer.chat.publications.custom-search':
+      'search for papers yourself.',
+    'citations-reviewer.chat.publications.change-search':
+      'change the search criteria.',
+    'citations-reviewer.chat.publications.search-criteria':
+      'Search by "__type__": "__value__"',
+    'citations-reviewer.chat.publications.clear-search':
+      'Clear search criteria',
+    'citations-reviewer.chat.publications.passage': 'Passage to review',
+    'citations-reviewer.chat.publications.no-authors': 'No authors',
+    'citations-reviewer.chat.publications.show-more': 'View more papers',
+    'citations-reviewer.chat.actions.refresh': 'Refresh citations',
+    'citations-reviewer.chat.actions.back': 'Back',
+    'citations-reviewer.chat.actions.more-authors': '> More authors',
+    'citations-reviewer.chat.actions.read-abstract': '> Read abstract',
+    'citations-reviewer.chat.actions.view-suggestions': 'View suggestions →',
+    'citations-reviewer.chat.actions.ignore': 'Ignore',
+    'citations-reviewer.chat.actions.view-paper': 'View paper',
+    'citations-reviewer.chat.actions.insert-citation': 'Insert citation',
+    'citations-reviewer.chat.actions.insert-citations':
+      'Insert __count__ citations',
+    'citations-reviewer.chat.confirmation.title': 'Insert citation?',
+    'citations-reviewer.chat.confirmation.body':
+      'Always ensure you’ve read the paper and confirmed any suggestions made by AI before inserting a citation.',
+    'citations-reviewer.chat.confirmation.insert': 'Insert citation',
+    'citations-reviewer.chat.confirmation.cancel': 'Cancel',
+    'citations-reviewer.chat.custom-search.title': 'Custom search',
+    'citations-reviewer.chat.custom-search.form.title': 'Title',
+    'citations-reviewer.chat.custom-search.form.title-placeholder':
+      'Enter paper title',
+    'citations-reviewer.chat.custom-search.form.authors': 'Author name(s)',
+    'citations-reviewer.chat.custom-search.form.authors-placeholder':
+      'Enter author name(s)',
+    'citations-reviewer.chat.custom-search.form.keywords': 'Keywords',
+    'citations-reviewer.chat.custom-search.form.keywords-placeholder':
+      'Enter keywords',
+    'citations-reviewer.chat.custom-search.form.search': 'Search',
+    'citations-reviewer.chat.custom-search.form.searching': 'Searching...',
   },
 } as const
 
@@ -390,9 +476,11 @@ const es = {
     'do-not-know': 'No lo sé',
     equation: 'equación',
     table: 'tabla',
+    figure: 'figura',
     or: 'o',
     close: 'Cerrar',
     submit: 'Enviar',
+    add: 'Añadir',
     'add-unlimited-ai': 'Añadir IA ilimitada',
     'accept-and-continue': 'Aceptar y continuar',
     'copy-code': 'Copiar código',
@@ -441,6 +529,8 @@ const es = {
     'translate.request-new-language.title': 'Solicitar un nuevo idioma',
     'translate.request-new-language.body':
       'Lo sentimos, actualmente no ofrecemos otros idiomas. Dinos qué idioma querías usar y revisaremos si podemos agregarlo en el futuro.',
+    'translate.request-new-language.body.already-provided':
+      'Gracias por tu solicitud. Ya ofrecemos __language__. Por favor, intenta usar Traducir nuevamente.',
     'translate.request-new-language.submit': 'Solicitar',
     'translate.request-new-language.thanks.title':
       'Gracias por tu solicitud de idioma',
@@ -524,7 +614,8 @@ const es = {
     'ai-context-menu.join': 'Unir',
     'ai-context-menu.widgets': 'Widgets',
     'ai-context-menu.abstract-generator': 'Generar Abstract',
-    'ai-context-menu.context-options': 'Opciones de Contexto',
+    'ai-context-menu.keywords-generator': 'Generar palabras clave',
+    'ai-context-menu.context-options': 'Opciones de contexto',
     'ai-context-menu.select-text-tooltip':
       'Seleccione texto para acceder a estas opciones',
     'ai-context-menu.paraphrase': 'Parafrasear',
@@ -546,6 +637,8 @@ const es = {
     'ai-context-menu.advanced-options.paraphrase.level': 'Nivel',
     'ai-context-menu.advanced-options.paraphrase.style': 'Estilo',
     'ai-context-menu.advanced-options.paraphrase.length': 'Longitud',
+    'ai-context-menu.advanced-options.prompt': 'Prompt',
+    'ai-context-menu.advanced-options.advanced': 'Avanzado',
     'ai-context-menu.translate': 'Traducir',
     'blocked-language-suggestions-modal.title':
       'Sugerencias de Lenguaje Bloqueadas',
@@ -577,7 +670,16 @@ const es = {
     'errors.error-hit-limit-freemium.body':
       'Has agotado tu cuota de Writefull. Actualiza ahora para obtener sugerencias de lenguaje ilimitadas y soporte en LaTeX, y acceso anticipado a las próximas funciones de generación como TikZ.',
     'toolbar.abstract-generator.name': 'Generar Abstract',
+    'toolbar.abstract-generator.disabled_non_english':
+      'Necesitas estar en un documento en inglés para generar un abstract',
+    'toolbar.keywords-generator.name': 'Generar Palabras Clave',
+    'toolbar.keywords-generator.disabled':
+      'Necesitas tener un abstract para generar palabras clave',
     'toolbar.title-generator.name': 'Generar Título',
+    'toolbar.title-generator.disabled_abstract_required':
+      'Necesitas tener un abstract para generar un título',
+    'toolbar.title-generator.disabled_non_english':
+      'Necesitas estar en un documento en inglés para generar un título',
     'toolbar.create-table.name': 'Crear tablas',
     'toolbar.create-table.tooltip': 'Generar tablas al instante',
     'toolbar.create-equation.name': 'Crear ecuaciones',
@@ -616,7 +718,7 @@ const es = {
     'create-modal.accept-tos_equation': 'Antes de generar una ecuación',
     'create-modal.image-picker-placeholder': 'Arrastra una imagen aquí',
     'create-modal.enter-prompt':
-      'Introduce tu propio prompt/pega una imagen aquí:',
+      'Introduce tu propio prompt para generar la __name__:',
     'create-modal.enter-prompt-or-paste-image':
       'Introduce tu propio prompt o pega una imagen de la __name__:',
     'create-modal.drop-image': 'O, arrastre una imagen de __name__ aquí:',
@@ -705,6 +807,19 @@ const es = {
     'sign-in.extension-user-blocked.p5':
       'Si necesitas ayuda o orientación, más información está disponible ',
     'sign-in.extension-user-blocked.l2': 'aquí.',
+    'translation-notification.title_1': 'New, nieuw, nuevo!',
+    'translation-notification.title_2': 'Traduce tu texto instantáneamente',
+    'translation-notification.body_1':
+      'Traduce tu proyecto sin salir de Overleaf!',
+    'translation-notification.body_2_floating-button-enabled':
+      'Simplemente resalta tu texto, haz clic',
+    'translation-notification.body_3_floating-button-enabled':
+      'y selecciona "Traducir" para elegir entre 30 idiomas.',
+    'translation-notification.body_2_toolbar-visible':
+      'Simplemente resalta tu texto y selecciona el icono "Traducir"',
+    'translation-notification.body_3_toolbar-visible':
+      'en tu barra de herramientas para elegir entre 30 idiomas.',
+    'translation-notification.ok': 'OK',
     'welcome.continue': 'Continuar',
     'welcome.not-for-you': '¿No es para ti? Haz clic',
     'welcome.here': 'aquí',
@@ -759,6 +874,66 @@ const es = {
     'welcome.reset-password': 'Restablecer contraseña',
     'welcome.enable-writefull':
       'Habilitar Writefull para soporte de lenguaje y LaTeX',
+    'citations-reviewer.chat.title': 'Revisor de citas',
+    'citations-reviewer.chat.description':
+      '<b>__count__ afirmaciones identificadas</b><br/>Aquí tienes pasajes en tu artículo que pueden beneficiarse de una cita.',
+    'citations-reviewer.chat.document-updated':
+      'Documento actualizado. Haz clic en "Actualizar citas" para revisar las citas nuevamente.',
+    'citations-reviewer.chat.fetching-citations':
+      'Revisando tu documento para ver si algún pasaje podría necesitar una cita',
+    'citations-reviewer.chat.fetching-publications':
+      'Obteniendo publicaciones...',
+    'citations-reviewer.chat.no-citations.title': 'Bien hecho!',
+    'citations-reviewer.chat.no-citations.description':
+      'No se identificaron pasajes que necesiten citas adicionales.',
+    'citations-reviewer.chat.no-citations.run-again': 'Volver a ejecutar',
+    'citations-reviewer.chat.no-citations.done': 'Hecho',
+    'citations-reviewer.chat.publications.title': 'Artículos sugeridos',
+    'citations-reviewer.chat.publications.description':
+      'Los siguientes artículos pueden respaldar la afirmación que has hecho. Revisa siempre los artículos por tu cuenta para asegurar su relevancia.',
+    'citations-reviewer.chat.publications.subtitle':
+      'Selecciona artículos para citar:',
+    'citations-reviewer.chat.publications.no-results':
+      'No se encontraron fuentes',
+    'citations-reviewer.chat.publications.alternatively': 'Alternativamente,',
+    'citations-reviewer.chat.publications.custom-search':
+      'busca artículos por tu cuenta.',
+    'citations-reviewer.chat.publications.change-search':
+      'cambia los criterios de búsqueda.',
+    'citations-reviewer.chat.publications.search-criteria':
+      'Búsqueda por "__type__": "__value__"',
+    'citations-reviewer.chat.publications.clear-search':
+      'Borrar criterios de búsqueda',
+    'citations-reviewer.chat.publications.passage': 'Pasaje a revisar',
+    'citations-reviewer.chat.publications.no-authors': 'Sin autores',
+    'citations-reviewer.chat.publications.show-more': 'Ver más artículos',
+    'citations-reviewer.chat.actions.refresh': 'Actualizar citas',
+    'citations-reviewer.chat.actions.back': 'Volver',
+    'citations-reviewer.chat.actions.more-authors': '> Más autores',
+    'citations-reviewer.chat.actions.read-abstract': '> Leer resumen',
+    'citations-reviewer.chat.actions.view-suggestions': 'Ver sugerencias →',
+    'citations-reviewer.chat.actions.ignore': 'Ignorar',
+    'citations-reviewer.chat.actions.view-paper': 'Ver artículo',
+    'citations-reviewer.chat.actions.insert-citation': 'Insertar cita',
+    'citations-reviewer.chat.actions.insert-citations':
+      'Insertar __count__ citas',
+    'citations-reviewer.chat.confirmation.title': '¿Insertar cita?',
+    'citations-reviewer.chat.confirmation.body':
+      'Asegúrate siempre de haber leído el artículo y confirmado cualquier sugerencia realizada por la IA antes de insertar una cita.',
+    'citations-reviewer.chat.confirmation.insert': 'Insertar cita',
+    'citations-reviewer.chat.confirmation.cancel': 'Cancelar',
+    'citations-reviewer.chat.custom-search.title': 'Búsqueda personalizada',
+    'citations-reviewer.chat.custom-search.form.title': 'Título',
+    'citations-reviewer.chat.custom-search.form.title-placeholder':
+      'Introduce el título del artículo',
+    'citations-reviewer.chat.custom-search.form.authors': 'Nombre(s) del autor',
+    'citations-reviewer.chat.custom-search.form.authors-placeholder':
+      'Introduce el nombre del autor o autores',
+    'citations-reviewer.chat.custom-search.form.keywords': 'Palabras clave',
+    'citations-reviewer.chat.custom-search.form.keywords-placeholder':
+      'Introduce palabras clave',
+    'citations-reviewer.chat.custom-search.form.search': 'Buscar',
+    'citations-reviewer.chat.custom-search.form.searching': 'Buscando...',
   },
 }
 

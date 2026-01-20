@@ -6,7 +6,7 @@ import Metrics from '@overleaf/metrics'
 import Settings from '@overleaf/settings'
 import ProjectHelper from './ProjectHelper.mjs'
 import ProjectGetter from './ProjectGetter.mjs'
-import PrivilegeLevels from '../Authorization/PrivilegeLevels.js'
+import PrivilegeLevels from '../Authorization/PrivilegeLevels.mjs'
 import SessionManager from '../Authentication/SessionManager.mjs'
 import Sources from '../Authorization/Sources.mjs'
 import UserGetter from '../User/UserGetter.mjs'
@@ -14,12 +14,12 @@ import SurveyHandler from '../Survey/SurveyHandler.mjs'
 import TagsHandler from '../Tags/TagsHandler.mjs'
 import { expressify } from '@overleaf/promise-utils'
 import logger from '@overleaf/logger'
-import Features from '../../infrastructure/Features.js'
+import Features from '../../infrastructure/Features.mjs'
 import SubscriptionViewModelBuilder from '../Subscription/SubscriptionViewModelBuilder.mjs'
 import NotificationsHandler from '../Notifications/NotificationsHandler.mjs'
-import Modules from '../../infrastructure/Modules.js'
+import Modules from '../../infrastructure/Modules.mjs'
 import { OError, V1ConnectionError } from '../Errors/Errors.js'
-import { User } from '../../models/User.js'
+import { User } from '../../models/User.mjs'
 import UserPrimaryEmailCheckHandler from '../User/UserPrimaryEmailCheckHandler.mjs'
 import UserController from '../User/UserController.mjs'
 import NotificationsBuilder from '../Notifications/NotificationsBuilder.mjs'
@@ -27,10 +27,10 @@ import GeoIpLookup from '../../infrastructure/GeoIpLookup.mjs'
 import SplitTestHandler from '../SplitTests/SplitTestHandler.mjs'
 import SplitTestSessionHandler from '../SplitTests/SplitTestSessionHandler.mjs'
 import TutorialHandler from '../Tutorial/TutorialHandler.mjs'
-import SubscriptionHelper from '../Subscription/SubscriptionHelper.js'
+import SubscriptionHelper from '../Subscription/SubscriptionHelper.mjs'
 import PermissionsManager from '../Authorization/PermissionsManager.mjs'
 import AnalyticsManager from '../Analytics/AnalyticsManager.mjs'
-import { OnboardingDataCollection } from '../../models/OnboardingDataCollection.js'
+import { OnboardingDataCollection } from '../../models/OnboardingDataCollection.mjs'
 import UserSettingsHelper from './UserSettingsHelper.mjs'
 
 /**
@@ -125,6 +125,7 @@ async function projectListPage(req, res, next) {
   let usersBestSubscription
   let usersIndividualSubscription
   let usersGroupSubscriptions = []
+  let usersManagedGroupSubscriptions = []
   let survey
   let userIsMemberOfGroupSubscription = false
   let groupSubscriptionsPendingEnrollment = []
@@ -186,6 +187,7 @@ async function projectListPage(req, res, next) {
         bestSubscription: usersBestSubscription,
         individualSubscription: usersIndividualSubscription,
         memberGroupSubscriptions: usersGroupSubscriptions,
+        managedGroupSubscriptions: usersManagedGroupSubscriptions,
       } = await SubscriptionViewModelBuilder.promises.getUsersSubscriptionDetails(
         { _id: userId }
       ))
@@ -195,20 +197,16 @@ async function projectListPage(req, res, next) {
         "Failed to get user's best subscription"
       )
     }
-    try {
-      userIsMemberOfGroupSubscription = usersGroupSubscriptions?.length > 0
 
-      // TODO use helper function
-      if (!user.enrollment?.managedBy) {
-        groupSubscriptionsPendingEnrollment = usersGroupSubscriptions.filter(
-          subscription =>
-            subscription.groupPlan && subscription.managedUsersEnabled
-        )
-      }
-    } catch (error) {
-      logger.error(
-        { err: error },
-        'Failed to check whether user is a member of group subscription'
+    userIsMemberOfGroupSubscription =
+      usersGroupSubscriptions.length > 0 ||
+      usersManagedGroupSubscriptions.length > 0
+
+    // TODO use helper function
+    if (!user.enrollment?.managedBy) {
+      groupSubscriptionsPendingEnrollment = usersGroupSubscriptions.filter(
+        subscription =>
+          subscription.groupPlan && subscription.managedUsersEnabled
       )
     }
 
@@ -447,14 +445,13 @@ async function projectListPage(req, res, next) {
   let showInrGeoBanner = false
   let showLATAMBanner = false
   let recommendedCurrency
+  const { countryCode, currencyCode } =
+    await GeoIpLookup.promises.getCurrencyCode(req.ip)
 
   if (
     usersBestSubscription?.type === 'free' ||
     usersBestSubscription?.type === 'standalone-ai-add-on'
   ) {
-    const { countryCode, currencyCode } =
-      await GeoIpLookup.promises.getCurrencyCode(req.ip)
-
     if (countryCode === 'IN') {
       showInrGeoBanner = true
     }
@@ -478,9 +475,9 @@ async function projectListPage(req, res, next) {
   }
 
   const affiliations = userAffiliations || []
-  const inEnterpriseCommons = affiliations.some(
-    affiliation => affiliation.institution?.enterpriseCommons
-  )
+  const commonsInstitution = affiliations.find(
+    affiliation => affiliation.institution?.commonsAccount
+  )?.institution?.name
 
   let onboardingDataCollection
   let subjectArea
@@ -493,10 +490,9 @@ async function projectListPage(req, res, next) {
   let customerIoEnabled = false
   const aiBlocked = !(await _canUseAIAssist(user))
   const hasAiAssist = await _userHasAIAssist(user)
-  if (!userIsMemberOfGroupSubscription && !inEnterpriseCommons && isSaas) {
+
+  if (!userIsMemberOfGroupSubscription && !commonsInstitution && isSaas) {
     try {
-      const ip = req.ip
-      const { countryCode } = await GeoIpLookup.promises.getCurrencyCode(ip)
       const excludedCountries = ['IN', 'CN']
 
       if (!excludedCountries.includes(countryCode)) {
@@ -542,6 +538,19 @@ async function projectListPage(req, res, next) {
     'themed-project-dashboard'
   )
 
+  const userSettings = await UserSettingsHelper.buildUserSettings(
+    req,
+    res,
+    user
+  )
+
+  const groupRole = userIsMemberOfGroupSubscription
+    ? usersManagedGroupSubscriptions?.length > 0 ||
+      usersGroupSubscriptions.some(sub => sub.userIsGroupManager)
+      ? 'admin'
+      : 'member'
+    : undefined
+
   res.render('project/list-react', {
     title: 'your_projects',
     usersBestSubscription,
@@ -550,7 +559,7 @@ async function projectListPage(req, res, next) {
     user,
     userAffiliations,
     userEmails,
-    userSettings: UserSettingsHelper.buildUserSettings(user),
+    userSettings,
     reconfirmedViaSAML,
     allInReconfirmNotificationPeriods,
     survey,
@@ -589,6 +598,10 @@ async function projectListPage(req, res, next) {
     role,
     usedLatex,
     inactiveTutorials,
+    countryCode,
+    commonsInstitution,
+    groupRole,
+    isManagedUser: Boolean(user.enrollment?.managedBy),
   })
 }
 
@@ -870,12 +883,12 @@ function _matchesFilters(project, tags, filters) {
 function _hasActiveFilter(filters) {
   return Boolean(
     filters.ownedByUser ||
-      filters.sharedWithUser ||
-      filters.archived ||
-      filters.trashed ||
-      filters.tag === null ||
-      filters.tag?.length ||
-      filters.search?.length
+    filters.sharedWithUser ||
+    filters.archived ||
+    filters.trashed ||
+    filters.tag === null ||
+    filters.tag?.length ||
+    filters.search?.length
   )
 }
 

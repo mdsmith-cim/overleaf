@@ -1,7 +1,7 @@
 import { vi, assert } from 'vitest'
 import sinon from 'sinon'
 import PaymentProviderEntities from '../../../../app/src/Features/Subscription/PaymentProviderEntities.mjs'
-import SubscriptionHelper from '../../../../app/src/Features/Subscription/SubscriptionHelper.js'
+import SubscriptionHelper from '../../../../app/src/Features/Subscription/SubscriptionHelper.mjs'
 
 const {
   PaymentProviderAccount,
@@ -113,6 +113,7 @@ describe('SubscriptionViewModelBuilder', function () {
       promises: {
         getUsersSubscription: sinon.stub().resolves(),
         getMemberSubscriptions: sinon.stub().resolves(),
+        getManagedGroupSubscriptions: sinon.stub().resolves([]),
       },
       getUsersSubscription: sinon.stub().yields(),
       getMemberSubscriptions: sinon.stub().yields(null, []),
@@ -998,13 +999,10 @@ describe('SubscriptionViewModelBuilder', function () {
           await ctx.SubscriptionViewModelBuilder.promises.buildUsersSubscriptionViewModel(
             ctx.user
           )
-        assert.equal(
-          result.personalSubscription.payment.displayPrice,
-          '€1,756.92'
-        )
+        assert.equal(result.personalSubscription.payment.displayPrice, '€16.50')
         assert.equal(
           result.personalSubscription.payment.planOnlyDisplayPrice,
-          '€1,754.72'
+          '€14.30'
         )
         assert.deepEqual(
           result.personalSubscription.payment

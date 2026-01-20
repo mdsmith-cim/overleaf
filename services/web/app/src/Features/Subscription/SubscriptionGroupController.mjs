@@ -6,10 +6,10 @@ import SubscriptionLocator from './SubscriptionLocator.mjs'
 import SessionManager from '../Authentication/SessionManager.mjs'
 import UserAuditLogHandler from '../User/UserAuditLogHandler.mjs'
 import { expressify } from '@overleaf/promise-utils'
-import Modules from '../../infrastructure/Modules.js'
+import Modules from '../../infrastructure/Modules.mjs'
 import UserGetter from '../User/UserGetter.mjs'
-import { Subscription } from '../../models/Subscription.js'
-import { z, validateReq } from '../../infrastructure/Validation.js'
+import { Subscription } from '../../models/Subscription.mjs'
+import { z, parseReq } from '../../infrastructure/Validation.mjs'
 import { isProfessionalGroupPlan } from './PlansHelper.mjs'
 import {
   MissingBillingInfoError,
@@ -20,7 +20,7 @@ import {
   HasPastDueInvoiceError,
   HasNoAdditionalLicenseWhenManuallyCollectedError,
   PaymentActionRequiredError,
-} from './Errors.js'
+} from './Errors.mjs'
 
 const MAX_NUMBER_OF_USERS = 20
 const MAX_NUMBER_OF_PO_NUMBER_CHARACTERS = 50
@@ -215,7 +215,7 @@ const previewAddSeatsSubscriptionChangeSchema = z.object({
  * @returns {Promise<void>}
  */
 async function previewAddSeatsSubscriptionChange(req, res) {
-  const { body } = validateReq(req, previewAddSeatsSubscriptionChangeSchema)
+  const { body } = parseReq(req, previewAddSeatsSubscriptionChangeSchema)
   try {
     const userId = SessionManager.getLoggedInUserId(req.session)
     const preview =
@@ -311,7 +311,7 @@ const submitFormSchema = z.object({
 })
 
 async function submitForm(req, res) {
-  const { body } = validateReq(req, submitFormSchema)
+  const { body } = parseReq(req, submitFormSchema)
   const { adding, poNumber } = body
 
   const userId = SessionManager.getLoggedInUserId(req.session)

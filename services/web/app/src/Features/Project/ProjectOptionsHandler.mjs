@@ -1,7 +1,7 @@
-import { Project } from '../../models/Project.js'
+import { Project } from '../../models/Project.mjs'
 import settings from '@overleaf/settings'
 import { callbackify } from 'node:util'
-import { db, ObjectId } from '../../infrastructure/mongodb.js'
+import { db, ObjectId } from '../../infrastructure/mongodb.mjs'
 import Errors from '../Errors/Errors.js'
 import mongodb from 'mongodb-legacy'
 const safeCompilers = ['xelatex', 'pdflatex', 'latex', 'lualatex']
@@ -9,22 +9,35 @@ const safeCompilers = ['xelatex', 'pdflatex', 'latex', 'lualatex']
 const { ReturnDocument } = mongodb
 
 const ProjectOptionsHandler = {
-  async setCompiler(projectId, compiler) {
-    if (!compiler) {
-      return
-    }
+  /**
+   * @param {string} compiler
+   * @return {string}
+   */
+  normalizeCompiler(compiler) {
     compiler = compiler.toLowerCase()
     if (!safeCompilers.includes(compiler)) {
       throw new Error(`invalid compiler: ${compiler}`)
     }
+    return compiler
+  },
+
+  async setCompiler(projectId, compiler) {
+    if (!compiler) {
+      return
+    }
+    compiler = ProjectOptionsHandler.normalizeCompiler(compiler)
     const conditions = { _id: projectId }
     const update = { compiler }
     return Project.updateOne(conditions, update, {})
   },
 
-  async setImageName(projectId, imageName) {
+  /**
+   * @param {string} imageName
+   * @return {string | undefined}
+   */
+  normalizeImageName(imageName) {
     if (!imageName || !Array.isArray(settings.allowedImageNames)) {
-      return
+      return undefined
     }
     imageName = imageName.toLowerCase()
     const isAllowed = settings.allowedImageNames.find(
@@ -33,8 +46,16 @@ const ProjectOptionsHandler = {
     if (!isAllowed) {
       throw new Error(`invalid imageName: ${imageName}`)
     }
+    return settings.imageRoot + '/' + imageName
+  },
+
+  async setImageName(projectId, imageName) {
+    imageName = ProjectOptionsHandler.normalizeImageName(imageName)
+    if (!imageName) {
+      return
+    }
     const conditions = { _id: projectId }
-    const update = { imageName: settings.imageRoot + '/' + imageName }
+    const update = { imageName }
     return Project.updateOne(conditions, update, {})
   },
 

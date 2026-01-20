@@ -26,7 +26,7 @@
  */
 
 import minimist from 'minimist'
-import { z } from '../../app/src/infrastructure/Validation.js'
+import { z } from '../../app/src/infrastructure/Validation.mjs'
 import { scriptRunner } from '../lib/ScriptRunner.mjs'
 import { getRegionClient } from '../../modules/subscriptions/app/src/StripeClient.mjs'
 
@@ -143,7 +143,6 @@ async function main(trackProgress) {
 
   const listParams = {
     limit: 100, // Stripe's maximum limit per request
-    status: 'all', // Include subscriptions in all statuses (active, past_due, unpaid, canceled, etc.)
   }
 
   let hasMore = true

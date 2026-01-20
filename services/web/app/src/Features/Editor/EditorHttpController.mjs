@@ -5,13 +5,13 @@ import AuthorizationManager from '../Authorization/AuthorizationManager.mjs'
 import ProjectEditorHandler from '../Project/ProjectEditorHandler.mjs'
 import Metrics from '@overleaf/metrics'
 import CollaboratorsInviteGetter from '../Collaborators/CollaboratorsInviteGetter.mjs'
-import PrivilegeLevels from '../Authorization/PrivilegeLevels.js'
+import PrivilegeLevels from '../Authorization/PrivilegeLevels.mjs'
 import SessionManager from '../Authentication/SessionManager.mjs'
 import Errors from '../Errors/Errors.js'
 import { expressify } from '@overleaf/promise-utils'
 import Settings from '@overleaf/settings'
 import CollaboratorsGetter from '../Collaborators/CollaboratorsGetter.mjs'
-import { z, zz, validateReq } from '../../infrastructure/Validation.js'
+import { z, zz, parseReq } from '../../infrastructure/Validation.mjs'
 
 const ProjectAccess = CollaboratorsGetter.ProjectAccess
 
@@ -39,7 +39,7 @@ const joinProjectSchema = z.object({
 })
 
 async function joinProject(req, res, next) {
-  const { params, body } = validateReq(req, joinProjectSchema)
+  const { params, body } = parseReq(req, joinProjectSchema)
   const projectId = params.Project_id
   let userId = body.userId
   if (userId === 'anonymous-user') {

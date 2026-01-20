@@ -1,12 +1,12 @@
 import Crypto from 'node:crypto'
 import Settings from '@overleaf/settings'
-import RedisWrapper from '../../infrastructure/RedisWrapper.js'
+import RedisWrapper from '../../infrastructure/RedisWrapper.mjs'
 import ProjectGetter from '../Project/ProjectGetter.mjs'
 import ProjectRootDocManager from '../Project/ProjectRootDocManager.mjs'
 import UserGetter from '../User/UserGetter.mjs'
 import ClsiManager from './ClsiManager.mjs'
 import Metrics from '@overleaf/metrics'
-import { RateLimiter } from '../../infrastructure/RateLimiter.js'
+import { RateLimiter } from '../../infrastructure/RateLimiter.mjs'
 import UserAnalyticsIdCache from '../Analytics/UserAnalyticsIdCache.mjs'
 import { callbackify, callbackifyMultiResult } from '@overleaf/promise-utils'
 let CompileManager
@@ -105,6 +105,7 @@ const instrumentedCompile = instrumentWithTimer(compile, 'editor.compile')
 async function getProjectCompileLimits(projectId) {
   const project = await ProjectGetter.promises.getProject(projectId, {
     owner_ref: 1,
+    fromV1TemplateId: 1,
   })
   return _getProjectCompileLimits(project)
 }
@@ -138,6 +139,9 @@ async function _getProjectCompileLimits(project) {
     compileBackendClass: compileGroup === 'standard' ? 'c3d' : 'c4d',
     ownerAnalyticsId: analyticsId,
   }
+  if (project.fromV1TemplateId === Settings.overrideCompileTimeForTemplate) {
+    limits.timeout = Math.max(limits.timeout, 20)
+  }
   return limits
 }
 
@@ -161,6 +165,7 @@ async function syncTeX(
   const project = await ProjectGetter.promises.getProject(projectId, {
     owner_ref: 1,
     imageName: 1,
+    fromV1TemplateId: 1,
   })
   const limits = await _getProjectCompileLimits(project)
   const { imageName } = project

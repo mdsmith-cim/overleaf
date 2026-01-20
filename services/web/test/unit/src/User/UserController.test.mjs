@@ -120,6 +120,7 @@ describe('UserController', function () {
       promises: {
         addEntry: sinon.stub().resolves(),
       },
+      addEntryInBackground: sinon.stub(),
     }
 
     ctx.RequestContentTypeDetection = {
@@ -564,33 +565,66 @@ describe('UserController', function () {
       })
     })
 
-    it('should set enableNewEditor to true', function (ctx) {
+    it('should set enableNewEditorStageFour to true', function (ctx) {
       return new Promise(resolve => {
         ctx.req.body = { enableNewEditor: true }
         ctx.res.sendStatus = code => {
-          ctx.user.ace.enableNewEditor.should.equal(true)
+          ctx.user.ace.enableNewEditorStageFour.should.equal(true)
           resolve()
         }
         ctx.UserController.updateUserSettings(ctx.req, ctx.res)
       })
     })
 
-    it('should set enableNewEditor to false', function (ctx) {
+    it('should set enableNewEditorStageFour to false', function (ctx) {
       return new Promise(resolve => {
         ctx.req.body = { enableNewEditor: false }
         ctx.res.sendStatus = code => {
-          ctx.user.ace.enableNewEditor.should.equal(false)
+          ctx.user.ace.enableNewEditorStageFour.should.equal(false)
           resolve()
         }
         ctx.UserController.updateUserSettings(ctx.req, ctx.res)
       })
     })
 
-    it('should keep enableNewEditor a boolean', function (ctx) {
+    it('should keep enableNewEditorStageFour a boolean', function (ctx) {
       return new Promise(resolve => {
         ctx.req.body = { enableNewEditor: 'foobar' }
         ctx.res.sendStatus = code => {
-          ctx.user.ace.enableNewEditor.should.equal(true)
+          ctx.user.ace.enableNewEditorStageFour.should.equal(true)
+          resolve()
+        }
+        ctx.UserController.updateUserSettings(ctx.req, ctx.res)
+      })
+    })
+
+    it('should set darkModePdf to true', function (ctx) {
+      return new Promise(resolve => {
+        ctx.req.body = { darkModePdf: true }
+        ctx.res.sendStatus = code => {
+          ctx.user.ace.darkModePdf.should.equal(true)
+          resolve()
+        }
+        ctx.UserController.updateUserSettings(ctx.req, ctx.res)
+      })
+    })
+
+    it('should set darkModePdf to false', function (ctx) {
+      return new Promise(resolve => {
+        ctx.req.body = { darkModePdf: false }
+        ctx.res.sendStatus = code => {
+          ctx.user.ace.darkModePdf.should.equal(false)
+          resolve()
+        }
+        ctx.UserController.updateUserSettings(ctx.req, ctx.res)
+      })
+    })
+
+    it('should keep darkModePdf a boolean', function (ctx) {
+      return new Promise(resolve => {
+        ctx.req.body = { darkModePdf: 'foobar' }
+        ctx.res.sendStatus = code => {
+          ctx.user.ace.darkModePdf.should.equal(true)
           resolve()
         }
         ctx.UserController.updateUserSettings(ctx.req, ctx.res)

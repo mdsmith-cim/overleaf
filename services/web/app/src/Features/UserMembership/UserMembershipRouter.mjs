@@ -2,7 +2,7 @@ import UserMembershipMiddleware from './UserMembershipMiddleware.mjs'
 import UserMembershipController from './UserMembershipController.mjs'
 import SubscriptionGroupController from '../Subscription/SubscriptionGroupController.mjs'
 import TeamInvitesController from '../Subscription/TeamInvitesController.mjs'
-import { RateLimiter } from '../../infrastructure/RateLimiter.js'
+import { RateLimiter } from '../../infrastructure/RateLimiter.mjs'
 import RateLimiterMiddleware from '../Security/RateLimiterMiddleware.mjs'
 
 const rateLimiters = {
@@ -58,7 +58,6 @@ export default {
       '/manage/groups/:id/managers',
       UserMembershipMiddleware.requireEntityAccess({
         entityName: 'groupManagers',
-        staffAccess: 'groupManagement',
         adminCapability: 'view-group-manager',
       }),
       UserMembershipController.manageGroupManagers
@@ -67,7 +66,6 @@ export default {
       '/manage/groups/:id/managers',
       UserMembershipMiddleware.requireEntityAccess({
         entityName: 'groupManagers',
-        staffAccess: 'groupManagement',
         adminCapability: 'modify-group-manager',
       }),
       UserMembershipController.add
@@ -76,7 +74,6 @@ export default {
       '/manage/groups/:id/managers/:userId',
       UserMembershipMiddleware.requireEntityAccess({
         entityName: 'groupManagers',
-        staffAccess: 'groupManagement',
         adminCapability: 'modify-group-manager',
       }),
       UserMembershipController.remove

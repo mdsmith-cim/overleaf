@@ -100,12 +100,18 @@ export class GraphicsWidget extends WidgetType {
 
     switch (preview.extension) {
       case 'pdf':
+      case 'PDF':
         {
           const canvas = document.createElement('canvas')
           canvas.classList.add('ol-cm-graphics')
           this.renderPDF(view, canvas, preview.url).catch(debugConsole.error)
           element.append(canvas)
         }
+        break
+
+      case 'svg':
+      case 'SVG':
+        element.append(this.createSvgImage(view, preview.url))
         break
 
       default:
@@ -147,6 +153,75 @@ export class GraphicsWidget extends WidgetType {
     return wrapper
   }
 
+  /**
+   * Creates an image element for SVG files by fetching the content and
+   * creating a Blob URL with the correct MIME type. This is necessary because
+   * the server serves blobs as application/octet-stream, which browsers won't
+   * render as SVG.
+   */
+  createSvgImage(view: EditorView, url: string) {
+    const wrapper = document.createElement('div')
+    const image = document.createElement('img')
+    image.classList.add('ol-cm-graphics')
+    image.classList.add('ol-cm-graphics-loading')
+    const width = this.getFigureWidth()
+    image.style.width = width
+    image.style.maxWidth = width
+
+    // Fetch SVG and create a Blob URL with correct MIME type
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch SVG: ${response.status}`)
+        }
+        return response.text()
+      })
+      .then(svgText => {
+        if (this.destroyed) {
+          return
+        }
+
+        const blob = new Blob([svgText], { type: 'image/svg+xml' })
+        const objectUrl = URL.createObjectURL(blob)
+
+        const showError = () => {
+          URL.revokeObjectURL(objectUrl)
+          const errorElement = this.createErrorElement(view)
+          wrapper.replaceChildren(errorElement)
+          this.height = wrapper.clientHeight
+          view.requestMeasure()
+        }
+
+        image.addEventListener(
+          'load',
+          () => {
+            URL.revokeObjectURL(objectUrl)
+            image.classList.remove('ol-cm-graphics-loading')
+            this.height = image.height
+            view.requestMeasure()
+          },
+          { once: true }
+        )
+
+        image.addEventListener('error', showError, { once: true })
+
+        image.src = objectUrl
+      })
+      .catch(() => {
+        if (this.destroyed) {
+          return
+        }
+
+        const errorElement = this.createErrorElement(view)
+        wrapper.replaceChildren(errorElement)
+        this.height = wrapper.clientHeight
+        view.requestMeasure()
+      })
+
+    wrapper.appendChild(image)
+    return wrapper
+  }
+
   createErrorElement(view: EditorView): HTMLElement {
     const wrapper = document.createElement('div')
     wrapper.classList.add('ol-cm-graphics-loading-error')
@@ -166,9 +241,8 @@ export class GraphicsWidget extends WidgetType {
   }
 
   async renderPDF(view: EditorView, canvas: HTMLCanvasElement, url: string) {
-    const { loadPdfDocumentFromUrl } = await import(
-      '@/features/pdf-preview/util/pdf-js'
-    )
+    const { loadPdfDocumentFromUrl } =
+      await import('@/features/pdf-preview/util/pdf-js')
 
     // bail out if loading PDF.js took too long
     if (this.destroyed) {

@@ -16,10 +16,23 @@ import getMeta from '@/utils/meta'
 import NewPdfLogsViewer from '@/features/ide-redesign/components/pdf-preview/pdf-logs-viewer'
 
 function PdfPreviewPane() {
-  const { pdfUrl } = useCompileContext()
+  const {
+    pdfUrl,
+    pdfViewer,
+    darkModePdf: darkModeSetting,
+    activeOverallTheme,
+  } = useCompileContext()
   const { compileTimeout } = getMeta('ol-compileSettings')
+  const usesNewEditor = useIsNewEditorEnabled()
+  const darkModePdf =
+    usesNewEditor &&
+    pdfViewer === 'pdfjs' &&
+    activeOverallTheme === 'dark' &&
+    darkModeSetting
+
   const classes = classNames('pdf', 'full-size', {
     'pdf-empty': !pdfUrl,
+    'pdf-dark-mode': darkModePdf,
   })
   const newEditor = useIsNewEditorEnabled()
 

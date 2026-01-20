@@ -1,7 +1,7 @@
 import AuthenticationManager from './AuthenticationManager.mjs'
 import SessionManager from './SessionManager.mjs'
 import OError from '@overleaf/o-error'
-import LoginRateLimiter from '../Security/LoginRateLimiter.js'
+import LoginRateLimiter from '../Security/LoginRateLimiter.mjs'
 import UserUpdater from '../User/UserUpdater.mjs'
 import Metrics from '@overleaf/metrics'
 import logger from '@overleaf/logger'
@@ -19,12 +19,12 @@ import AsyncFormHelper from '../Helpers/AsyncFormHelper.mjs'
 import _ from 'lodash'
 import UserAuditLogHandler from '../User/UserAuditLogHandler.mjs'
 import AnalyticsRegistrationSourceHelper from '../Analytics/AnalyticsRegistrationSourceHelper.mjs'
-import { acceptsJson } from '../../infrastructure/RequestContentTypeDetection.js'
+import { acceptsJson } from '../../infrastructure/RequestContentTypeDetection.mjs'
 import AdminAuthorizationHelper from '../Helpers/AdminAuthorizationHelper.mjs'
-import Modules from '../../infrastructure/Modules.js'
+import Modules from '../../infrastructure/Modules.mjs'
 import { expressify, promisify } from '@overleaf/promise-utils'
-import { handleAuthenticateErrors } from './AuthenticationErrors.js'
-import EmailHelper from '../Helpers/EmailHelper.js'
+import { handleAuthenticateErrors } from './AuthenticationErrors.mjs'
+import EmailHelper from '../Helpers/EmailHelper.mjs'
 
 const { hasAdminAccess } = AdminAuthorizationHelper
 
@@ -62,20 +62,6 @@ function checkCredentials(userDetailsMap, user, password) {
   return isValid
 }
 
-function reduceStaffAccess(staffAccess) {
-  const reducedStaffAccess = {}
-  for (const field in staffAccess) {
-    if (staffAccess[field]) {
-      reducedStaffAccess[field] = true
-    }
-  }
-  return reducedStaffAccess
-}
-
-function userHasStaffAccess(user) {
-  return user.staffAccess && Object.values(user.staffAccess).includes(true)
-}
-
 // TODO: Finish making these methods async
 const AuthenticationController = {
   serializeUser(user, callback) {
@@ -100,9 +86,7 @@ const AuthenticationController = {
     }
     if (user.isAdmin) {
       lightUser.isAdmin = true
-    }
-    if (userHasStaffAccess(user)) {
-      lightUser.staffAccess = reduceStaffAccess(user.staffAccess)
+      lightUser.adminRoles = user.adminRoles
     }
 
     callback(null, lightUser)
@@ -393,9 +377,7 @@ const AuthenticationController = {
 
     const middleware = async (req, res, next) => {
       const Oauth2Server = (
-        await import(
-          '../../../../modules/oauth2-server/app/src/Oauth2Server.mjs'
-        )
+        await import('../../../../modules/oauth2-server/app/src/Oauth2Server.mjs')
       ).default
 
       const request = new Oauth2Server.Request(req)

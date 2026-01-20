@@ -5,17 +5,17 @@ import path from 'node:path'
 import mongodb from 'mongodb-legacy'
 import Settings from '@overleaf/settings'
 import OError from '@overleaf/o-error'
-import CooldownManager from '../Cooldown/CooldownManager.js'
+import CooldownManager from '../Cooldown/CooldownManager.mjs'
 import Errors from '../Errors/Errors.js'
-import { Folder } from '../../models/Folder.js'
-import LockManager from '../../infrastructure/LockManager.js'
-import { Project } from '../../models/Project.js'
+import { Folder } from '../../models/Folder.mjs'
+import LockManager from '../../infrastructure/LockManager.mjs'
+import { Project } from '../../models/Project.mjs'
 import ProjectEntityHandler from './ProjectEntityHandler.mjs'
 import ProjectGetter from './ProjectGetter.mjs'
 import ProjectLocator from './ProjectLocator.mjs'
 import FolderStructureBuilder from './FolderStructureBuilder.mjs'
 import SafePath from './SafePath.mjs'
-import { iterablePaths } from './IterablePath.js'
+import { iterablePaths } from './IterablePath.mjs'
 
 const { ObjectId } = mongodb
 
@@ -554,7 +554,7 @@ async function _putElement(project, folderId, element, type, userId) {
       { projectId: project._id },
       'project too big, stopping insertions'
     )
-    CooldownManager.putProjectOnCooldown(project._id)
+    await CooldownManager.putProjectOnCooldown(project._id)
     throw new Error('project_has_too_many_files')
   }
 

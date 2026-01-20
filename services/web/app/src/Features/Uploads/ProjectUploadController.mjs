@@ -8,7 +8,7 @@ import SessionManager from '../Authentication/SessionManager.mjs'
 import EditorController from '../Editor/EditorController.mjs'
 import ProjectLocator from '../Project/ProjectLocator.mjs'
 import Settings from '@overleaf/settings'
-import { InvalidZipFileError } from './ArchiveErrors.js'
+import { InvalidZipFileError } from './ArchiveErrors.mjs'
 import multer from 'multer'
 import lodash from 'lodash'
 import { expressify } from '@overleaf/promise-utils'
@@ -71,27 +71,33 @@ async function uploadFile(req, res, next) {
   const userId = SessionManager.getLoggedInUserId(req.session)
   let { folder_id: folderId } = req.query
   if (name == null || name.length === 0 || name.length > 150) {
+    fs.unlink(path, function () {})
     return res.status(422).json({
       success: false,
       error: 'invalid_filename',
     })
   }
 
-  // preserve the directory structure from an uploaded folder
-  const { relativePath } = req.body
-  // NOTE: Uppy sends a "null" string for `relativePath` when the file is not nested in a folder
-  if (relativePath && relativePath !== 'null') {
-    const { path } = await ProjectLocator.promises.findElement({
-      project_id: projectId,
-      element_id: folderId,
-      type: 'folder',
-    })
-    const { lastFolder } = await EditorController.promises.mkdirp(
-      projectId,
-      Path.dirname(Path.join('/', path.fileSystem, relativePath)),
-      userId
-    )
-    folderId = lastFolder._id
+  try {
+    // preserve the directory structure from an uploaded folder
+    const { relativePath } = req.body
+    // NOTE: Uppy sends a "null" string for `relativePath` when the file is not nested in a folder
+    if (relativePath && relativePath !== 'null') {
+      const { path } = await ProjectLocator.promises.findElement({
+        project_id: projectId,
+        element_id: folderId,
+        type: 'folder',
+      })
+      const { lastFolder } = await EditorController.promises.mkdirp(
+        projectId,
+        Path.dirname(Path.join('/', path.fileSystem, relativePath)),
+        userId
+      )
+      folderId = lastFolder._id
+    }
+  } catch (error) {
+    fs.unlink(path, function () {})
+    throw error
   }
 
   return FileSystemImportManager.addEntity(

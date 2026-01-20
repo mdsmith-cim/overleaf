@@ -4,9 +4,8 @@ import tk from 'timekeeper'
 import moment from 'moment'
 import Errors from '../../../../app/src/Features/Errors/Errors.js'
 import mongoose from 'mongoose'
-import indirectlyImportModels from '../helpers/indirectlyImportModels.js'
-
-const { User, DeletedUser } = indirectlyImportModels(['User', 'DeletedUser'])
+import { DeletedUser } from '../../../../app/src/models/DeletedUser.mjs'
+import { User } from '../../../../app/src/models/User.mjs'
 
 const ObjectId = mongoose.Types.ObjectId
 
@@ -70,6 +69,7 @@ describe('UserDeleter', function () {
     ctx.SubscriptionLocator = {
       promises: {
         getUsersSubscription: sinon.stub().resolves(),
+        getUniqueManagedSubscriptionMemberOf: sinon.stub().resolves(),
       },
     }
 
@@ -99,10 +99,6 @@ describe('UserDeleter', function () {
       promises: { hooks: { fire: sinon.stub().resolves() } },
     }
 
-    ctx.Feedback = {
-      deleteMany: sinon.stub().returns({ exec: sinon.stub().resolves() }),
-    }
-
     ctx.OnboardingDataCollectionManager = {
       deleteOnboardingDataCollection: sinon.stub().resolves(),
     }
@@ -125,10 +121,6 @@ describe('UserDeleter', function () {
 
     vi.doMock('../../../../app/src/models/DeletedUser', () => ({
       DeletedUser,
-    }))
-
-    vi.doMock('../../../../app/src/models/Feedback', () => ({
-      Feedback: ctx.Feedback,
     }))
 
     vi.doMock(
@@ -428,7 +420,8 @@ describe('UserDeleter', function () {
               ctx.userId,
               'delete-account',
               ctx.userId,
-              ctx.ipAddress
+              ctx.ipAddress,
+              {}
             )
           })
         })
@@ -509,7 +502,8 @@ describe('UserDeleter', function () {
             ctx.userId,
             'delete-account',
             ctx.deleterId,
-            ctx.ipAddress
+            ctx.ipAddress,
+            {}
           )
         })
 
@@ -523,6 +517,81 @@ describe('UserDeleter', function () {
             ctx.UserMock.verify()
             ctx.DeletedUserMock.verify()
           })
+        })
+      })
+
+      describe('when the user is part of a managed subscription', function () {
+        beforeEach(function (ctx) {
+          ctx.managedSubscriptionId = new ObjectId()
+          ctx.SubscriptionLocator.promises.getUniqueManagedSubscriptionMemberOf.resolves(
+            {
+              _id: ctx.managedSubscriptionId,
+            }
+          )
+
+          ctx.DeletedUserMock.expects('updateOne')
+            .withArgs(
+              { 'deleterData.deletedUserId': ctx.userId },
+              ctx.deletedUser,
+              { upsert: true }
+            )
+            .chain('exec')
+            .resolves()
+          ctx.UserMock.expects('deleteOne')
+            .withArgs({ _id: ctx.userId })
+            .chain('exec')
+            .resolves()
+        })
+
+        it('should include managedSubscriptionId in audit log', async function (ctx) {
+          await ctx.UserDeleter.promises.deleteUser(ctx.userId, {
+            ipAddress: ctx.ipAddress,
+          })
+          expect(
+            ctx.UserAuditLogHandler.promises.addEntry
+          ).to.have.been.calledWith(
+            ctx.userId,
+            'delete-account',
+            ctx.userId,
+            ctx.ipAddress,
+            {}
+          )
+        })
+      })
+
+      describe('when checking managed subscription fails', function () {
+        beforeEach(function (ctx) {
+          ctx.SubscriptionLocator.promises.getUniqueManagedSubscriptionMemberOf.rejects(
+            new Error('subscription lookup failed')
+          )
+
+          ctx.DeletedUserMock.expects('updateOne')
+            .withArgs(
+              { 'deleterData.deletedUserId': ctx.userId },
+              ctx.deletedUser,
+              { upsert: true }
+            )
+            .chain('exec')
+            .resolves()
+          ctx.UserMock.expects('deleteOne')
+            .withArgs({ _id: ctx.userId })
+            .chain('exec')
+            .resolves()
+        })
+
+        it('should continue with deletion and not include managedSubscriptionId', async function (ctx) {
+          await ctx.UserDeleter.promises.deleteUser(ctx.userId, {
+            ipAddress: ctx.ipAddress,
+          })
+          expect(
+            ctx.UserAuditLogHandler.promises.addEntry
+          ).to.have.been.calledWith(
+            ctx.userId,
+            'delete-account',
+            ctx.userId,
+            ctx.ipAddress,
+            {}
+          )
         })
       })
     })
@@ -709,13 +778,6 @@ describe('UserDeleter', function () {
         'expireDeletedUser',
         ctx.userId
       )
-    })
-
-    it('should delete Feeback', async function (ctx) {
-      await ctx.UserDeleter.promises.expireDeletedUser(ctx.userId)
-      expect(ctx.Feedback.deleteMany).to.have.been.calledWith({
-        userId: ctx.userId,
-      })
     })
 
     describe('when called as a callback', function () {

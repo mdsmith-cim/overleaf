@@ -1,5 +1,5 @@
 import { vi, expect } from 'vitest'
-import path from 'path'
+import path from 'node:path'
 import sinon from 'sinon'
 
 const MODULE_PATH = path.join(
@@ -39,7 +39,7 @@ describe('EmailSender', function () {
     }))
 
     vi.doMock('@aws-sdk/client-ses', () => ({
-      default: { SESClient: ctx.SESClient },
+      SESClient: ctx.SESClient,
     }))
 
     vi.doMock('@overleaf/settings', () => ({

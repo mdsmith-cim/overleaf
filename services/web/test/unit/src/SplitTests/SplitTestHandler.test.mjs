@@ -1,9 +1,9 @@
 import { vi, assert, expect } from 'vitest'
-import Path from 'path'
+import Path from 'node:path'
 import sinon from 'sinon'
 import mongodb from 'mongodb-legacy'
-import MockRequest from '../helpers/MockRequest.js'
-import MockResponse from '../helpers/MockResponse.js'
+import MockRequest from '../helpers/MockRequest.mjs'
+import MockResponse from '../helpers/MockResponse.mjs'
 
 const { ObjectId } = mongodb
 
@@ -131,8 +131,8 @@ describe('SplitTestHandler', function () {
 
     ctx.SplitTestHandler = (await import(MODULE_PATH)).default
 
-    ctx.req = new MockRequest()
-    ctx.res = new MockResponse()
+    ctx.req = new MockRequest(vi)
+    ctx.res = new MockResponse(vi)
   })
 
   describe('with an existing user', function () {
@@ -300,11 +300,6 @@ describe('SplitTestHandler', function () {
           phase: 'release',
           variantName: 'variant-1',
           versionNumber: 2,
-        },
-        'not-active-test': {
-          phase: 'release',
-          variantName: 'variant-1',
-          versionNumber: 1,
         },
       })
     })

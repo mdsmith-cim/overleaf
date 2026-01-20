@@ -8,9 +8,9 @@ import ProjectGetter from '../Project/ProjectGetter.mjs'
 import ProjectHelper from '../Project/ProjectHelper.mjs'
 import ProjectRootDocManager from '../Project/ProjectRootDocManager.mjs'
 import FileTypeManager from '../Uploads/FileTypeManager.mjs'
-import CooldownManager from '../Cooldown/CooldownManager.js'
+import CooldownManager from '../Cooldown/CooldownManager.mjs'
 import Errors from '../Errors/Errors.js'
-import Modules from '../../infrastructure/Modules.js'
+import Modules from '../../infrastructure/Modules.mjs'
 
 async function newUpdate(
   userId,
@@ -25,8 +25,9 @@ async function newUpdate(
     return null
   }
 
-  const projectIsOnCooldown =
-    await CooldownManager.promises.isProjectOnCooldown(project._id)
+  const projectIsOnCooldown = await CooldownManager.isProjectOnCooldown(
+    project._id
+  )
   if (projectIsOnCooldown) {
     throw new Errors.TooManyRequestsError('project on cooldown')
   }
@@ -107,7 +108,11 @@ async function findProjectByIdWithRWAccess(userId, projectId) {
   for (const projects of [allProjects.owned, allProjects.readAndWrite]) {
     for (const project of projects) {
       if (project._id.toString() === projectId) {
-        return project
+        if (ProjectHelper.isArchivedOrTrashed(project, userId)) {
+          return null
+        } else {
+          return project
+        }
       }
     }
   }
@@ -169,8 +174,9 @@ async function createFolder(userId, projectId, projectName, path) {
     return null
   }
 
-  const projectIsOnCooldown =
-    await CooldownManager.promises.isProjectOnCooldown(project._id)
+  const projectIsOnCooldown = await CooldownManager.isProjectOnCooldown(
+    project._id
+  )
   if (projectIsOnCooldown) {
     throw new Errors.TooManyRequestsError('project on cooldown')
   }

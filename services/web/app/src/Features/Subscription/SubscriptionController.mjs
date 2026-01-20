@@ -2,7 +2,7 @@
 
 import SessionManager from '../Authentication/SessionManager.mjs'
 import SubscriptionHandler from './SubscriptionHandler.mjs'
-import SubscriptionHelper from './SubscriptionHelper.js'
+import SubscriptionHelper from './SubscriptionHelper.mjs'
 import SubscriptionViewModelBuilder from './SubscriptionViewModelBuilder.mjs'
 import LimitationsManager from './LimitationsManager.mjs'
 import RecurlyWrapper from './RecurlyWrapper.mjs'
@@ -10,29 +10,29 @@ import Settings from '@overleaf/settings'
 import logger from '@overleaf/logger'
 import GeoIpLookup from '../../infrastructure/GeoIpLookup.mjs'
 import FeaturesUpdater from './FeaturesUpdater.mjs'
-import GroupPlansData from './GroupPlansData.js'
+import GroupPlansData from './GroupPlansData.mjs'
 import V1SubscriptionManager from './V1SubscriptionManager.mjs'
 import AnalyticsManager from '../Analytics/AnalyticsManager.mjs'
 import RecurlyEventHandler from './RecurlyEventHandler.mjs'
 import { expressify } from '@overleaf/promise-utils'
 import OError from '@overleaf/o-error'
-import Errors from './Errors.js'
+import Errors from './Errors.mjs'
 import SplitTestHandler from '../SplitTests/SplitTestHandler.mjs'
 import AuthorizationManager from '../Authorization/AuthorizationManager.mjs'
-import Modules from '../../infrastructure/Modules.js'
+import Modules from '../../infrastructure/Modules.mjs'
 import async from 'async'
 import HttpErrorHandler from '../Errors/HttpErrorHandler.mjs'
 import RecurlyClient from './RecurlyClient.mjs'
 import {
   AI_ADD_ON_CODE,
   subscriptionChangeIsAiAssistUpgrade,
-} from './AiHelper.js'
+} from './AiHelper.mjs'
 import PlansLocator from './PlansLocator.mjs'
-import { User } from '../../models/User.js'
+import { User } from '../../models/User.mjs'
 import UserGetter from '../User/UserGetter.mjs'
 import PermissionsManager from '../Authorization/PermissionsManager.mjs'
 import { sanitizeSessionUserForFrontEnd } from '../../infrastructure/FrontEndUser.mjs'
-import { z, validateReq } from '../../infrastructure/Validation.js'
+import { z, parseReq } from '../../infrastructure/Validation.mjs'
 import { IndeterminateInvoiceError } from '../Errors/Errors.js'
 import SubscriptionLocator from './SubscriptionLocator.mjs'
 
@@ -374,7 +374,7 @@ const pauseSubscriptionSchema = z.object({
 
 async function pauseSubscription(req, res, next) {
   const user = SessionManager.getSessionUser(req.session)
-  const { params } = validateReq(req, pauseSubscriptionSchema)
+  const { params } = parseReq(req, pauseSubscriptionSchema)
   const pauseCycles = params.pauseCycles
   if (pauseCycles < 0) {
     return HttpErrorHandler.badRequest(
@@ -598,7 +598,7 @@ const purchaseAddonSchema = z.object({
 
 async function purchaseAddon(req, res, next) {
   const user = SessionManager.getSessionUser(req.session)
-  const { params } = validateReq(req, purchaseAddonSchema)
+  const { params } = parseReq(req, purchaseAddonSchema)
   const addOnCode = params.addOnCode
   // currently we only support having a quantity of 1
   const quantity = 1
@@ -683,7 +683,7 @@ const removeAddonSchema = z.object({
 
 async function removeAddon(req, res, next) {
   const user = SessionManager.getSessionUser(req.session)
-  const { params } = validateReq(req, removeAddonSchema)
+  const { params } = parseReq(req, removeAddonSchema)
   const addOnCode = params.addOnCode
 
   if (addOnCode !== AI_ADD_ON_CODE) {
@@ -693,7 +693,7 @@ async function removeAddon(req, res, next) {
   logger.debug({ userId: user._id, addOnCode }, 'removing add-ons')
 
   try {
-    await SubscriptionHandler.promises.removeAddon(user._id, addOnCode)
+    await SubscriptionHandler.promises.removeAddon(user, addOnCode)
     res.sendStatus(200)
   } catch (err) {
     if (err instanceof AddOnNotPresentError) {
@@ -728,7 +728,7 @@ const reactivateAddonSchema = z.object({
  */
 async function reactivateAddon(req, res) {
   const user = SessionManager.getSessionUser(req.session)
-  const { params } = validateReq(req, reactivateAddonSchema)
+  const { params } = parseReq(req, reactivateAddonSchema)
   const addOnCode = params.addOnCode
 
   if (addOnCode !== AI_ADD_ON_CODE) {

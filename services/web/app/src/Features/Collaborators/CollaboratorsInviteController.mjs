@@ -6,17 +6,17 @@ import CollaboratorsInviteHandler from './CollaboratorsInviteHandler.mjs'
 import CollaboratorsInviteGetter from './CollaboratorsInviteGetter.mjs'
 import logger from '@overleaf/logger'
 import Settings from '@overleaf/settings'
-import EmailHelper from '../Helpers/EmailHelper.js'
+import EmailHelper from '../Helpers/EmailHelper.mjs'
 import EditorRealTimeController from '../Editor/EditorRealTimeController.mjs'
 import AnalyticsManager from '../Analytics/AnalyticsManager.mjs'
 import SessionManager from '../Authentication/SessionManager.mjs'
-import { RateLimiter } from '../../infrastructure/RateLimiter.js'
-import { z, zz, validateReq } from '../../infrastructure/Validation.js'
+import { RateLimiter } from '../../infrastructure/RateLimiter.mjs'
+import { z, zz, parseReq } from '../../infrastructure/Validation.mjs'
 import { expressify } from '@overleaf/promise-utils'
 import ProjectAuditLogHandler from '../Project/ProjectAuditLogHandler.mjs'
 import Errors from '../Errors/Errors.js'
 import AuthenticationController from '../Authentication/AuthenticationController.mjs'
-import PrivilegeLevels from '../Authorization/PrivilegeLevels.js'
+import PrivilegeLevels from '../Authorization/PrivilegeLevels.mjs'
 
 // This rate limiter allows a different number of requests depending on the
 // number of callaborators a user is allowed. This is implemented by providing
@@ -96,7 +96,7 @@ const inviteToProjectSchema = z.object({
 })
 
 async function inviteToProject(req, res) {
-  const { params, body } = validateReq(req, inviteToProjectSchema)
+  const { params, body } = parseReq(req, inviteToProjectSchema)
   const projectId = params.Project_id
   let { email, privileges } = body
   const sendingUser = SessionManager.getSessionUser(req.session)

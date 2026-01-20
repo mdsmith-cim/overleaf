@@ -2,7 +2,7 @@
 import Settings from '@overleaf/settings'
 
 import PlansLocator from './PlansLocator.mjs'
-import { isStandaloneAiAddOnPlanCode } from './AiHelper.js'
+import { isStandaloneAiAddOnPlanCode } from './AiHelper.mjs'
 import PaymentProviderEntities from './PaymentProviderEntities.mjs'
 import SubscriptionFormatters from './SubscriptionFormatters.mjs'
 import SubscriptionLocator from './SubscriptionLocator.mjs'
@@ -12,12 +12,12 @@ import PublishersGetter from '../Publishers/PublishersGetter.mjs'
 import sanitizeHtml from 'sanitize-html'
 import _ from 'lodash'
 import async from 'async'
-import SubscriptionHelper from './SubscriptionHelper.js'
+import SubscriptionHelper from './SubscriptionHelper.mjs'
 import { callbackify } from '@overleaf/promise-utils'
 import { V1ConnectionError } from '../Errors/Errors.js'
 import FeaturesHelper from './FeaturesHelper.mjs'
 import { formatCurrency } from '../../util/currency.js'
-import Modules from '../../infrastructure/Modules.js'
+import Modules from '../../infrastructure/Modules.mjs'
 import SplitTestHandler from '../SplitTests/SplitTestHandler.mjs'
 
 const { MEMBERS_LIMIT_ADD_ON_CODE } = PaymentProviderEntities
@@ -320,30 +320,18 @@ async function buildUsersSubscriptionViewModel(user, locale = 'en') {
         throw new Error(`No plan found for planCode '${pendingPlanCode}'`)
       }
       let pendingAdditionalLicenses = 0
-      let pendingAddOnTax = 0
-      let pendingAddOnPrice = 0
+
       if (paymentRecord.subscription.pendingChange.nextAddOns) {
         const pendingAddOns =
           paymentRecord.subscription.pendingChange.nextAddOns
         pendingAddOns.forEach(addOn => {
-          pendingAddOnPrice += addOn.quantity * addOn.unitPrice
           if (addOn.code === pendingPlan.membersLimitAddOn) {
             pendingAdditionalLicenses += addOn.quantity
           }
         })
-        // Need to calculate tax ourselves as we don't get tax amounts for pending subs
-        pendingAddOnTax =
-          personalSubscription.payment.taxRate * pendingAddOnPrice
-        pendingPlan.addOns = pendingAddOns
       }
-      const pendingSubscriptionTax =
-        personalSubscription.payment.taxRate *
-        paymentRecord.subscription.pendingChange.nextPlanPrice
-      const totalPrice =
-        paymentRecord.subscription.pendingChange.nextPlanPrice +
-        pendingAddOnPrice +
-        pendingAddOnTax +
-        pendingSubscriptionTax
+
+      const totalPrice = paymentRecord.subscription.planPrice + addOnPrice + tax
 
       personalSubscription.payment.displayPrice = formatCurrency(
         totalPrice,
@@ -393,16 +381,18 @@ async function buildUsersSubscriptionViewModel(user, locale = 'en') {
 
 /**
  * @param {{_id: string}} user
- * @returns {Promise<{bestSubscription:Subscription,individualSubscription:DBSubscription|null,memberGroupSubscriptions:DBSubscription[]}>}
+ * @returns {Promise<{bestSubscription:Subscription,individualSubscription:DBSubscription|null,memberGroupSubscriptions:DBSubscription[],managedGroupSubscriptions:DBSubscription[]}>}
  */
 async function getUsersSubscriptionDetails(user) {
   let [
     individualSubscription,
     memberGroupSubscriptions,
+    managedGroupSubscriptions,
     currentInstitutionsWithLicence,
   ] = await Promise.all([
     SubscriptionLocator.promises.getUsersSubscription(user),
     SubscriptionLocator.promises.getMemberSubscriptions(user),
+    SubscriptionLocator.promises.getManagedGroupSubscriptions(user),
     InstitutionsGetter.promises.getCurrentInstitutionsWithLicence(user._id),
   ])
   if (
@@ -483,7 +473,12 @@ async function getUsersSubscriptionDetails(user) {
       }
     }
   }
-  return { bestSubscription, individualSubscription, memberGroupSubscriptions }
+  return {
+    bestSubscription,
+    individualSubscription,
+    memberGroupSubscriptions,
+    managedGroupSubscriptions,
+  }
 }
 
 function buildPlansList(currentPlan, isInTrial) {

@@ -1,7 +1,7 @@
-const settings = require('@overleaf/settings')
-const projectKey = require('./project_key')
+import settings from '@overleaf/settings'
+import projectKey from '@overleaf/object-persistor/src/ProjectKey.js'
 
-module.exports = {
+export default {
   getConvertedFolderKey,
   addCachingToKey,
   bucketFileKeyMiddleware,

@@ -881,11 +881,18 @@ export const atomicDecorations = (options: Options) => {
               )
             )
           }
-        } else if (nodeRef.type.is('IncludeGraphics')) {
-          // \includegraphics with a file path argument
+        } else if (
+          nodeRef.type.is('IncludeGraphics') ||
+          nodeRef.type.is('IncludeSvg')
+        ) {
+          // \includegraphics or \includesvg with a file path argument
+          const isIncludeSvg = nodeRef.type.is('IncludeSvg')
           if (shouldDecorate(state, nodeRef)) {
+            const argumentNodeName = isIncludeSvg
+              ? 'IncludeSvgArgument'
+              : 'IncludeGraphicsArgument'
             const filePathArgument = nodeRef.node
-              .getChild('IncludeGraphicsArgument')
+              .getChild(argumentNodeName)
               ?.getChild('FilePathArgument')
               ?.getChild('LiteralArgContent')
 
@@ -895,6 +902,18 @@ export const atomicDecorations = (options: Options) => {
                 filePathArgument.to
               )
 
+              // \includegraphics doesn't support SVG
+              if (!isIncludeSvg && filePath.toLowerCase().endsWith('.svg')) {
+                return false
+              }
+
+              if (
+                isIncludeSvg &&
+                previewByPath(filePath)?.extension !== 'svg'
+              ) {
+                return false
+              }
+
               if (filePath) {
                 const environmentNode = ancestorNodeOfType(
                   state,
@@ -903,7 +922,7 @@ export const atomicDecorations = (options: Options) => {
                 )
                 const centered = Boolean(
                   environmentNode &&
-                    centeringNodeForEnvironment(environmentNode)
+                  centeringNodeForEnvironment(environmentNode)
                 )
                 const figureData = environmentNode
                   ? parseFigureData(environmentNode, state)
@@ -998,7 +1017,7 @@ export const atomicDecorations = (options: Options) => {
                   ...decorateArgumentBraces(
                     new BraceWidget(decorateBrackets ? '' : '['),
                     argumentNode,
-                    from,
+                    argumentNode.from,
                     false,
                     new BraceWidget(decorateBrackets ? '' : ']'),
                     { open: OpenBracket, close: CloseBracket }

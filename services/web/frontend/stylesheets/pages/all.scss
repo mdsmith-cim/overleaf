@@ -7,7 +7,6 @@
 @import 'sidebar-v2-dash-pane';
 @import 'editor/ide';
 @import 'editor/ide-redesign';
-@import 'editor/ide-redesign-switcher-modal';
 @import 'editor/rail';
 @import 'editor/settings';
 @import 'editor/toolbar';
@@ -36,6 +35,9 @@
 @import 'editor/math-preview';
 @import 'editor/references-search';
 @import 'editor/editor-survey';
+@import 'editor/editor-tour-tooltip';
+@import 'editor/new-editor-promo-modal';
+@import 'editor/old-editor-warning-tooltip';
 @import 'error-pages';
 @import 'website-redesign';
 @import 'group-settings';
@@ -43,17 +45,16 @@
 @import 'homepage';
 @import 'auth';
 @import 'login-register';
-@import 'login';
 @import 'register';
 @import 'plans';
-@import 'onboarding-confirm-email';
+@import 'onboarding-confirm-email-ciam';
 @import 'secondary-confirm-email';
 @import 'onboarding';
 @import 'admin/admin';
 @import 'admin/project-url-lookup';
 @import 'add-secondary-email-prompt';
-@import 'try-premium';
 @import 'bonus';
 @import 'portals';
 @import 'wiki';
 @import 'templates';
+@import 'notification-settings';

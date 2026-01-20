@@ -56,7 +56,7 @@ describe('CompileManager', function () {
       default: (ctx.ClsiManager = { promises: {} }),
     }))
 
-    vi.doMock('../../../../app/src/infrastructure/RateLimiter.js', () => ({
+    vi.doMock('../../../../app/src/infrastructure/RateLimiter.mjs', () => ({
       RateLimiter: sinon.stub().returns(ctx.rateLimiter),
     }))
 
@@ -233,7 +233,7 @@ describe('CompileManager', function () {
 
     it('should look up the owner of the project', function (ctx) {
       ctx.ProjectGetter.promises.getProject
-        .calledWith(ctx.project_id, { owner_ref: 1 })
+        .calledWith(ctx.project_id, { owner_ref: 1, fromV1TemplateId: 1 })
         .should.equal(true)
     })
 

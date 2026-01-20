@@ -6,8 +6,8 @@ import csp, { removeCSPHeaders } from './CSP.mjs'
 import Router from '../router.mjs'
 import helmet from 'helmet'
 import UserSessionsRedis from '../Features/User/UserSessionsRedis.mjs'
-import Csrf from './Csrf.mjs'
-import HttpPermissionsPolicyMiddleware from './HttpPermissionsPolicy.js'
+import Csrf, { Csrf as CsrfClass } from './Csrf.mjs'
+import HttpPermissionsPolicyMiddleware from './HttpPermissionsPolicy.mjs'
 import SessionAutostartMiddleware from './SessionAutostartMiddleware.mjs'
 import AnalyticsManager from '../Features/Analytics/AnalyticsManager.mjs'
 import session from 'express-session'
@@ -22,15 +22,15 @@ import { Strategy as LocalStrategy } from 'passport-local'
 import ReferalConnect from '../Features/Referal/ReferalConnect.mjs'
 import RedirectManager from './RedirectManager.mjs'
 import translations from './Translations.mjs'
-import Views from './Views.js'
-import Features from './Features.js'
+import Views from './Views.mjs'
+import Features from './Features.mjs'
 import ErrorController from '../Features/Errors/ErrorController.mjs'
 import HttpErrorHandler from '../Features/Errors/HttpErrorHandler.mjs'
 import UserSessionsManager from '../Features/User/UserSessionsManager.mjs'
 import AuthenticationController from '../Features/Authentication/AuthenticationController.mjs'
 import SessionManager from '../Features/Authentication/SessionManager.mjs'
 import AdminAuthorizationHelper from '../Features/Helpers/AdminAuthorizationHelper.mjs'
-import Modules from './Modules.js'
+import Modules from './Modules.mjs'
 import expressLocals from './ExpressLocals.mjs'
 import noCache from 'nocache'
 import os from 'node:os'
@@ -141,7 +141,7 @@ if (Settings.enabledServices.includes('web')) {
   }
   if (Settings.precompilePugTemplatesAtBootTime) {
     logger.debug('precompiling views for web in production environment')
-    Views.precompileViews(app)
+    await Views.precompileViews(app)
   }
   Modules.loadViewIncludes(app)
 }
@@ -232,7 +232,7 @@ Modules.hooks.fire('passportSetup', passport, err => {
 
 await Modules.applyNonCsrfRouter(webRouter, privateApiRouter, publicApiRouter)
 
-webRouter.csrf = new Csrf()
+webRouter.csrf = new CsrfClass()
 webRouter.use(webRouter.csrf.middleware)
 webRouter.use(translations.i18nMiddleware)
 webRouter.use(translations.setLangBasedOnDomainMiddleware)

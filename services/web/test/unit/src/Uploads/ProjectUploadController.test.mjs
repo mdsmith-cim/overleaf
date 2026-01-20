@@ -7,9 +7,9 @@
  */
 import { expect, vi } from 'vitest'
 import sinon from 'sinon'
-import MockRequest from '../helpers/MockRequest.js'
-import MockResponse from '../helpers/MockResponse.js'
-import ArchiveErrors from '../../../../app/src/Features/Uploads/ArchiveErrors.js'
+import MockRequest from '../helpers/MockRequest.mjs'
+import MockResponse from '../helpers/MockResponse.mjs'
+import ArchiveErrors from '../../../../app/src/Features/Uploads/ArchiveErrors.mjs'
 
 const modulePath =
   '../../../../app/src/Features/Uploads/ProjectUploadController.mjs'
@@ -17,8 +17,8 @@ const modulePath =
 describe('ProjectUploadController', function () {
   beforeEach(async function (ctx) {
     let Timer
-    ctx.req = new MockRequest()
-    ctx.res = new MockResponse()
+    ctx.req = new MockRequest(vi)
+    ctx.res = new MockResponse(vi)
     ctx.user_id = 'user-id-123'
     ctx.metrics = {
       Timer: (Timer = (function () {
@@ -313,6 +313,33 @@ describe('ProjectUploadController', function () {
       })
     })
 
+    describe('when looking up the folder structure fails', function () {
+      beforeEach(async function (ctx) {
+        await new Promise(resolve => {
+          ctx.error = new Error('woops')
+          ctx.ProjectLocator.promises.findElement = sinon
+            .stub()
+            .rejects(ctx.error)
+          ctx.req.body.relativePath = 'foo/bar/' + ctx.fileName
+
+          ctx.next = error => {
+            ctx.nextError = error
+            resolve()
+          }
+
+          ctx.ProjectUploadController.uploadFile(ctx.req, ctx.res, ctx.next)
+        })
+      })
+
+      it('should unlink the file', function (ctx) {
+        ctx.fs.unlink.should.have.been.calledWith(ctx.path)
+      })
+
+      it('should call next with the error', function (ctx) {
+        expect(ctx.nextError).to.equal(ctx.error)
+      })
+    })
+
     describe('when FileSystemImportManager.addEntity returns a generic error', function () {
       beforeEach(function (ctx) {
         ctx.FileSystemImportManager.addEntity = sinon
@@ -354,13 +381,37 @@ describe('ProjectUploadController', function () {
         ctx.ProjectUploadController.uploadFile(ctx.req, ctx.res)
       })
 
-      it('should return a a non success response', function (ctx) {
+      it('should return a non success response', function (ctx) {
         expect(ctx.res.body).to.deep.equal(
           JSON.stringify({
             success: false,
             error: 'invalid_filename',
           })
         )
+      })
+
+      it('should remove the uploaded file', function (ctx) {
+        ctx.fs.unlink.calledWith(ctx.path).should.equal(true)
+      })
+    })
+
+    describe('with a filename that is too long', function () {
+      beforeEach(function (ctx) {
+        ctx.req.body.name = 'a'.repeat(151)
+        ctx.ProjectUploadController.uploadFile(ctx.req, ctx.res)
+      })
+
+      it('should return a non success response', function (ctx) {
+        expect(ctx.res.body).to.deep.equal(
+          JSON.stringify({
+            success: false,
+            error: 'invalid_filename',
+          })
+        )
+      })
+
+      it('should remove the uploaded file', function (ctx) {
+        ctx.fs.unlink.calledWith(ctx.path).should.equal(true)
       })
     })
   })

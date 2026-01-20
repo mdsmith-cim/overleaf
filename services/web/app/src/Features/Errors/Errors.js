@@ -81,6 +81,16 @@ class SAMLCommonsUnavailable extends OError {
   }
 }
 
+class SAMLDomainCaptureError extends OError {}
+
+class SAMLDomainCaptureJoiningError extends SAMLDomainCaptureError {}
+
+class SAMLDomainCaptureEmailExistsError extends SAMLDomainCaptureJoiningError {
+  get i18nKey() {
+    return 'saml_email_on_another_account_error'
+  }
+}
+
 class SAMLIdentityExistsError extends OError {
   get i18nKey() {
     return 'institution_account_tried_to_add_already_registered'
@@ -187,6 +197,23 @@ class SAMLEmailNotRecognizedError extends SAMLAuthenticationError {
 }
 
 class SAMLDomainCaptureRegisterError extends SAMLAuthenticationError {}
+
+class SAMLRequestDeniedError extends SAMLAuthenticationError {
+  get i18nKey() {
+    return 'saml_request_denied_error'
+  }
+}
+
+class SAMLDomainCaptureManagedUserOptInRequiredError extends OError {
+  // use OError instead of SAMLDomainCaptureError since SAMLMiddleware will check for
+  // SAMLDomainCaptureError and update SAML audit log but these errors do not need to be logged
+}
+
+class SAMLDomainCaptureManagedUserMissingEmailError extends OError {}
+
+class SAMLGroupMemberLimitReachedError extends OError {}
+
+class SAMLDomainCaptureManagedOptInUserMissingEmailError extends SAMLDomainCaptureError {}
 
 class SAMLSessionDataMissing extends BackwardCompatibleError {
   constructor(arg) {
@@ -349,6 +376,9 @@ module.exports = {
   SAMLAssertionAudienceMismatch,
   SAMLAuthenticationRequiredError,
   SAMLCommonsUnavailable,
+  SAMLDomainCaptureEmailExistsError,
+  SAMLDomainCaptureError,
+  SAMLDomainCaptureJoiningError,
   SAMLIdentityExistsError,
   SAMLAlreadyLinkedError,
   SAMLEmailNotAffiliatedError,
@@ -369,7 +399,12 @@ module.exports = {
   SAMLLoginFailureError,
   SAMLEmailNotRecognizedError,
   SAMLResponseAlreadyProcessedError,
+  SAMLRequestDeniedError,
   SAMLDomainCaptureRegisterError,
+  SAMLDomainCaptureManagedUserMissingEmailError,
+  SAMLGroupMemberLimitReachedError,
+  SAMLDomainCaptureManagedUserOptInRequiredError,
+  SAMLDomainCaptureManagedOptInUserMissingEmailError,
   SLInV2Error,
   ThirdPartyIdentityExistsError,
   ThirdPartyUserNotFoundError,

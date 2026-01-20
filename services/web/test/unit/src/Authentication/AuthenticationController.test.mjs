@@ -1,10 +1,10 @@
 import { beforeEach, describe, it, vi, expect } from 'vitest'
 import sinon from 'sinon'
 import tk from 'timekeeper'
-import MockRequest from '../helpers/MockRequest.js'
-import MockResponse from '../helpers/MockResponse.js'
+import MockRequest from '../helpers/MockRequest.mjs'
+import MockResponse from '../helpers/MockResponse.mjs'
 import mongodb from 'mongodb-legacy'
-import AuthenticationErrors from '../../../../app/src/Features/Authentication/AuthenticationErrors.js'
+import AuthenticationErrors from '../../../../app/src/Features/Authentication/AuthenticationErrors.mjs'
 const modulePath =
   '../../../../app/src/Features/Authentication/AuthenticationController.mjs'
 
@@ -35,37 +35,9 @@ describe('AuthenticationController', function () {
       referal_id: 1234,
       isAdmin: false,
     }
-    ctx.staffUser = {
-      ...ctx.user,
-      staffAccess: {
-        publisherMetrics: true,
-        publisherManagement: false,
-        institutionMetrics: true,
-        institutionManagement: false,
-        groupMetrics: true,
-        groupManagement: false,
-        adminMetrics: true,
-        splitTestMetrics: false,
-        splitTestManagement: true,
-      },
-    }
-    ctx.noStaffAccessUser = {
-      ...ctx.user,
-      staffAccess: {
-        publisherMetrics: false,
-        publisherManagement: false,
-        institutionMetrics: false,
-        institutionManagement: false,
-        groupMetrics: false,
-        groupManagement: false,
-        adminMetrics: false,
-        splitTestMetrics: false,
-        splitTestManagement: false,
-      },
-    }
     ctx.password = 'banana'
-    ctx.req = new MockRequest()
-    ctx.res = new MockResponse()
+    ctx.req = new MockRequest(vi)
+    ctx.res = new MockResponse(vi)
     ctx.callback = sinon.stub()
     ctx.next = sinon.stub()
     ctx.req.session.analyticsId = 'abc-123'
@@ -323,41 +295,6 @@ describe('AuthenticationController', function () {
 
         ctx.AuthenticationController.serializeUser(ctx.user, ctx.callback)
         expect(ctx.callback).to.have.been.calledWith(null, isAdminMatcher)
-      })
-    })
-
-    describe('when staffAccess fields are provided', function () {
-      it('only returns the fields set to true', function (ctx) {
-        const expectedStaffAccess = {
-          publisherMetrics: true,
-          institutionMetrics: true,
-          groupMetrics: true,
-          adminMetrics: true,
-          splitTestManagement: true,
-        }
-        const staffAccessMatcher = sinon.match(value => {
-          return (
-            Object.keys(value.staffAccess).length ===
-            Object.keys(expectedStaffAccess).length
-          )
-        })
-
-        ctx.AuthenticationController.serializeUser(ctx.staffUser, ctx.callback)
-        expect(ctx.callback).to.have.been.calledWith(null, staffAccessMatcher)
-      })
-    })
-
-    describe('when all staffAccess fields are false', function () {
-      it('no staffAccess attribute is set', function (ctx) {
-        const staffAccessMatcher = sinon.match(value => {
-          return !('staffAccess' in value)
-        })
-
-        ctx.AuthenticationController.serializeUser(
-          ctx.noStaffAccessUser,
-          ctx.callback
-        )
-        expect(ctx.callback).to.have.been.calledWith(null, staffAccessMatcher)
       })
     })
   })
