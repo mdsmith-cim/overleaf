@@ -11,15 +11,21 @@ make all
 cd ~/overleaf-toolkit
 git pull
 
-#### Now update version file to latest!! e.g. via /bin/update
-bin/update
+# If upgrading -> run script
+# Script checks git for newer versions of toolkit
+# Note: DO NOT pull latest image from docker (won't even run on ARM); instead, set new version below in config/version
+bin/upgrade
 
 #### Version in config/version should have -with-texlive-full at end
 #### e.g. 6.0.0-with-texlive-full
+#### ^^ Need to update this with new version
 
 # Read version from disk
 IMAGE_VERSION_DISK="$(head -n 1 "config/version")"
 docker tag sharelatex/sharelatex:main sharelatex/sharelatex:${IMAGE_VERSION_DISK}
+
+# If upgrading
+bin/stop
 
 ### Now bring up docker stack
 bin/up -d
